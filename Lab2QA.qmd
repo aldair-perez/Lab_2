@@ -1,0 +1,69 @@
+---
+title: "Lab2QA"
+format: html
+editor: visual
+---
+
+## Lab 2 - Minnesota Tree Growth
+
+The following is a list of answers from Lab 2, Minnesota trees, from questions 1-20:
+
+`{r} 1} tree_dat It's a table that contains infomation about the tree ID, stand ID, stand, year, species, age, inc, and rad_lib.`
+
+`{r} 2}``tree_dat %>% +     count(standID, 1)``979 records in stand 1.`
+
+`{r} 3} tree_dat %>% +     count(species) 13033 (ABBA) + 4188 (PIST) = 17221`
+
+`{r} 4} tree_dat %>% +     filter(year == 2007)|> +     slice_max(age > 200) There are 7 trees older than 200 years in 2007.`
+
+`{r} 5} tree_dat %>% +     slice_max(age)  The oldest tree is 269 years.`
+
+`{r} 6} tree_dat %>% +     filter(year == 2001) |> +     slice_max(age > 200)   The oldest trees are 206, 206, 212, 259, 263 years old.`
+
+`{r} 7} tree_dat %>% +     filter(year == 2002) |> +     slice_sample(prop = 0.30)  There are 687 trees in a 30% sample.`
+
+`{r} 8} tree_dat %>% +     filter(standID == 5, year == 2007) |> +     arrange(desc(rad_ib)) |> +     slice_head(n = 3)  The treeIDs are 128, 157, and 135.`
+
+`(r) 9} tree_dat %>%           select(treeID, standID, year, rad_ib) |>                       filter(standID == 3, year == 2007) |>                          slice_min(order_by = rad_ib, n = 3)  The smallest trees are 47.4, 48.4, and 54.9.`
+
+`{r} 10} tree_dat %>% select(-stand)`
+
+`{r} 11} tree_dat %>% select(contains("ID"))`
+
+`{r} 12} tree_dat_selected <- tree_dat %>% select(matches("ID|stand"))`
+
+`{r} 13}`tree_dat \<- tree_dat %\>% rename(rad_inc_cm = rad_ib_cm, inc_mm = ib_mm)
+
+`{r} 14}`tree_dat \<- tree_dat %\>% + mutate(DBH_cm = 2 \* rad_inc_cm, BA_m2 = 0.00007854 \* DBH_cm\^2)\
+mean_BA_POTR_2007 \<- tree_dat %\>% + filter(species == "POTR", year == 2007) %\>% + summarise(mean_BA = mean(BA_m2, na.rm = TRUE))\
+`The mean is 3.70.`
+
+`{r} 15} established_trees_count <- tree_dat %>% mutate(established = if_else(age > 5, TRUE, FALSE)) %>% count(established). There are 122503 = TRUE, while there are 8883 = FALSE`
+
+`{r} 16} db_classified_trees <- tree_dat %>% +     mutate(DBH_class = case_when(DBH_cm < 10 ~ "Small", DBH_cm >= 10 & DBH_cm < 30 ~ "Medium", DBH_cm >= 30 ~ "Large")) %>% filter(year == 2007) %>% count(DBH_class) The number of large = 2291.`
+
+`{r} 17} dbh_stats_2007 <-tree_dat %>% +     mutate(DBH_cm = 2 * rad_ib_cm) %>% +     filter(year == 2007) %>% +     summarise(mean_DBH = mean (DBH_cm, na.rm = TRUE), +               sd_DBH = sd(DBH_cm, na.rm = TRUE))  The mean = 160.93, which is the average DBH in centimeters. The SD = 61.38, which means the numbers are very spread out.`
+
+`{r} 18} oldest_species_2003 <- tree_dat %>% +     filter(year == 2003) %>% +     group_by(species) %>% +     summarise(mean_age = mean(age, na.rm = TRUE)) %>% +     arrange(desc(mean_age)) %>% +     slice_head(n = 3)  The oldest species are THOC, FRNI, and PIST.`
+
+`{r} 19} > year_summary <- tree_dat %>% +     summarise(num_unique_years = n_distinct(year), +               first_year = min(year), +               last_year = max(year))  There are 111 unique years, with 1897 being the first year and 2007 being the last year.`
+
+`{r} 20}`temporal_record \<- tree_dat %\>%  + group_by(standID) %\>%  + summarise(unique_years = n_distinct(year)) %\>% + ungroup() %\>% + arrange(desc(unique_years)) %\>% + filter(unique_years == max(unique_years))`StandID 1, 15, 16, 17, and 24 all have the same highest unique years of 111.`
+
+```{r} Final Question}
+growth_stats <- tree_dat %>%
++     arrange(species, year) %>%                       
++     group_by(species) %>%                            
++     mutate(growth = DBH_cm - lag(DBH_cm)) %>%        
++     summarise(mean_growth = mean(growth, na.rm = TRUE)) %>% 
++     ungroup() %>%                                   
++     arrange(desc(mean_growth)) 
+The fastest growing species are LALA, POGR, and THOC. The slowest growing species are ACRU, PIST, and PIRE. 
+
+fastest_species <- growth_stats %>%
++     slice_head(n = 3)
+slowest_growing_species <- growth_stats %>%
++     slice_tail(n = 3)
+```
+
+![This is a photo of the Larix laricina, the fastest growing species. <https://www.gardenia.net/plant/larix-laricina>](images/Screenshot 2025-02-22 180557.png){fig-align="center"}
